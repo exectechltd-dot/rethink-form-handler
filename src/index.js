@@ -14,7 +14,7 @@ export default {
       return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
     }
 
-    try {
+  try {
       const formData = await request.formData();
       const data = Object.fromEntries(formData.entries());
 
@@ -22,7 +22,7 @@ export default {
         .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
         .join("\n");
 
-      await fetch("https://api.mailchannels.net/tx/v1/send", {
+      const mcResponse = await fetch("https://api.mailchannels.net/tx/v1/send", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -41,10 +41,18 @@ export default {
         }),
       });
 
+      // ADD THESE TWO LINES
+      console.log(`MailChannels Status: ${mcResponse.status}`);
+      const errorDetail = await mcResponse.text();
+      console.log(`MailChannels Response: ${errorDetail}`);
+
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+
+    } catch (err) {
+      // ... existing catch block
 
     } catch (err) {
       return new Response(JSON.stringify({ error: err.message }), { 
