@@ -30,7 +30,7 @@ export default {
             to: [{ email: "paul@rethinkyourit.co.nz", name: "Paul Aylett" }] 
           }],
           from: { 
-            email: "paul@rethinkyourit.co.nz", 
+            email: "exectechltd@gmail.com", 
             name: "Rethink Your IT" 
           },
           subject: "New Website Health Check Submission",
