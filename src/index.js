@@ -22,13 +22,17 @@ export default {
         .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
         .join("\n");
 
-      // MailChannels Send Request
+      // MailChannels Send Request with DKIM Signing
       const mcResponse = await fetch("https://api.mailchannels.net/tx/v1/send", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           personalizations: [{ 
-            to: [{ email: "paul@rethinkyourit.co.nz", name: "Paul Aylett" }] 
+            to: [{ email: "paul@rethinkyourit.co.nz", name: "Paul Aylett" }],
+            // DKIM configuration
+            dkim_domain: "rethinkyourit.co.nz",
+            dkim_selector: "mailchannels",
+            dkim_private_key: env.DKIM_PRIVATE_KEY, 
           }],
           from: { 
             email: "forms@rethinkyourit.co.nz", 
