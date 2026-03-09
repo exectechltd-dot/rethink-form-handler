@@ -36,7 +36,7 @@ export default {
           }],
           from: { 
             // CRITICAL: Update sender to the subdomain
-            email: "forms@forms.rethinkyourit.co.nz", 
+            email: "no-reply@forms.rethinkyourit.co.nz", 
             name: "Rethink Your IT" 
           },
           // Added reply_to so your responses go to your main inbox
