@@ -9,10 +9,10 @@ pattern = "api.rethinkyourit.co.nz"
 custom_domain = true
 
 # 2. Secret Variable Binding
-# We define it here so the code (env.DKIM_PRIVATE_KEY) can see it.
+# RESEND_API_KEY must be added as an encrypted secret in Cloudflare Workers settings.
 # The actual value stays in Cloudflare's encrypted secrets, not this file.
 [vars]
-DKIM_PRIVATE_KEY = ""
+RESEND_API_KEY = ""
 
 [observability]
 enabled = false
