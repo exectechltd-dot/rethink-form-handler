@@ -1,52 +1,44 @@
-export default {
-  async fetch(request, env) {
-    // 1. UNIVERSAL CORS - Allow the browser to talk to the worker
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    };
+function submitForm() {
+    const name = document.getElementById('firstName').value.trim();
+    const email = document.getElementById('email').value.trim();
 
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
+    if (!name || !email) {
+        document.getElementById('firstName').style.borderColor = name ? '' : 'var(--red)';
+        document.getElementById('email').style.borderColor = email ? '' : 'var(--red)';
+        return;
     }
 
-    if (request.method !== "POST") {
-      return new Response("Method not allowed", { status: 405 });
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    // Ensure the variable is declared clearly within this scope
+    const healthCheckData = new FormData(); 
+    
+    healthCheckData.append('first-name', name);
+    healthCheckData.append('business-name', document.getElementById('businessName').value);
+    healthCheckData.append('email', email);
+    healthCheckData.append('phone', document.getElementById('phone').value);
+
+    // Using your global 'answers' object
+    for (let i = 1; i <= 5; i++) {
+        healthCheckData.append(`q${i}`, answers[`q${i}`] || 'Not answered');
     }
 
-    try {
-      const formData = await request.formData();
-      const data = Object.fromEntries(formData.entries());
-
-      // Format the email
-      const emailBody = Object.entries(data)
-        .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
-        .join("\n");
-
-      // 2. DISPATCH TO MAILCHANNELS
-      const mcResponse = await fetch("https://api.mailchannels.net/tx/v1/send", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          personalizations: [{ to: [{ email: "paul@rethinkyourit.co.nz", name: "Paul Aylett" }] }],
-          from: { email: "forms@rethinkyourit.co.nz", name: "Rethink Your IT" },
-          subject: "New Health Check Submission",
-          content: [{ type: "text/plain", value: emailBody }],
-        }),
-      });
-
-      // 3. SUCCESS RESPONSE
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-
-    } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), { 
-        status: 500, 
-        headers: corsHeaders 
-      });
-    }
-  },
-};
+    fetch('https://rethink-form-handler.paulaylett.workers.dev/', {
+        method: 'POST',
+        body: healthCheckData, // Matching variable name
+        mode: 'no-cors'
+    })
+    .then(() => {
+        document.getElementById('formArea').querySelectorAll('.question-card, .contact-card, .progress-wrap').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.getElementById('thankyou').classList.add('visible');
+    })
+    .catch(err => {
+        console.error("Submission failed:", err);
+        btn.disabled = false;
+        btn.textContent = 'Send my results to Paul';
+    });
+}
