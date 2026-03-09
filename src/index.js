@@ -22,7 +22,7 @@ export default {
         .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
         .join("\n");
 
-      const mcResponse = await fetch("https://api.mailchannels.net/tx/v1/send", {
+      await fetch("https://api.mailchannels.net/tx/v1/send", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
