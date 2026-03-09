@@ -22,21 +22,27 @@ export default {
         .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
         .join("\n");
 
-      // MailChannels Send Request with DKIM Signing
+      // MailChannels Send Request with updated Subdomain alignment
       const mcResponse = await fetch("https://api.mailchannels.net/tx/v1/send", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           personalizations: [{ 
             to: [{ email: "paul@rethinkyourit.co.nz", name: "Paul Aylett" }],
-            // DKIM configuration
-            dkim_domain: "rethinkyourit.co.nz",
+            // CRITICAL: Update DKIM domain to the subdomain for alignment
+            dkim_domain: "forms.rethinkyourit.co.nz",
             dkim_selector: "mailchannels",
             dkim_private_key: env.DKIM_PRIVATE_KEY, 
           }],
           from: { 
-            email: "forms@rethinkyourit.co.nz", 
+            // CRITICAL: Update sender to the subdomain
+            email: "forms@forms.rethinkyourit.co.nz", 
             name: "Rethink Your IT" 
+          },
+          // Added reply_to so your responses go to your main inbox
+          reply_to: {
+            email: "paul@rethinkyourit.co.nz",
+            name: "Paul Aylett"
           },
           subject: "New Website Health Check Submission",
           content: [{ 
@@ -46,7 +52,6 @@ export default {
         }),
       });
 
-      // Logging for troubleshooting
       const mcStatus = mcResponse.status;
       const mcText = await mcResponse.text();
       console.log(`MailChannels Status: ${mcStatus}`);
