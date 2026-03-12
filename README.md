@@ -1,31 +1,39 @@
-# Rethink Your IT - Form Handler
+# Rethink Your IT — Form Handler
 
-A Cloudflare Worker that processes form submissions from rethinkyourit.co.nz and sends them via email using Resend.
+A Cloudflare Worker that processes form submissions from rethinkyourit.co.nz.
 
 ## How it works
-1. Receives a `POST` request from the website forms (Health Check and Contact).
-2. Parses the `FormData`.
-3. Formats the data into a plain-text email.
-4. Dispatches the email via the Resend API to paul@rethinkyourit.co.nz.
-5. Returns a JSON success response.
+
+### All forms
+1. Receives a `POST` request from the website.
+2. Parses `FormData` (field names are Title Case: `Name`, `Email`, `Business`, `Question 1` etc.).
+3. Sends a raw submission email to paul@rethinkyourit.co.nz via Resend.
+
+### Health Check forms (AI pipeline)
+After the raw email is dispatched, a background pipeline runs:
+1. **Email domain check** — flags personal vs business email; uses domain as search fallback if no business name.
+2. **Brave Search** — searches `{Business} New Zealand` for web context (skipped gracefully if no search term).
+3. **Claude AI** (claude-haiku via direct API fetch) — generates a brief with:
+   - Business Brief (2–3 sentences on the prospect)
+   - Pillar Analysis (Foundations, Security, AI Ops, IT Advisory — scored 1–4)
+   - Draft Customer Email (ready to send to the prospect)
+4. Sends a formatted brief email to Paul.
 
 ## Deployment
-This worker is connected to GitHub. Any push to the `main` branch automatically deploys to Cloudflare via the integrated build pipeline.
+Push to `main` to deploy via Cloudflare's GitHub integration.
+
+Manual deploy: `npm run deploy` (requires `CLOUDFLARE_API_TOKEN` env var).
+
+## Secrets required
+Set via `wrangler secret put <NAME>` or Cloudflare dashboard:
+
+| Secret | Purpose |
+|---|---|
+| `RESEND_API_KEY` | Resend email API |
+| `BRAVE_API_KEY` | Brave Search (Health Check pipeline) |
+| `ANTHROPIC_API_KEY` | Claude AI (Health Check pipeline) |
 
 ## Configuration
 - **Worker URL:** `https://api.rethinkyourit.co.nz`
-- **Email Service:** [Resend](https://resend.com) — requires an API key and verified domain.
-- **Sender address:** `no-reply@forms.rethinkyourit.co.nz`
-
-## Resend Setup (one-time)
-1. Create an account at [resend.com](https://resend.com).
-2. Go to **Domains → Add Domain** → enter `forms.rethinkyourit.co.nz` → add the DNS records provided.
-3. Go to **API Keys → Create API Key** → copy the key.
-4. In Cloudflare Workers: **Settings → Variables → Add encrypted secret** named `RESEND_API_KEY`.
-
-## Optional: Dynamic email subject
-Forms can include a hidden field `form-type` to customise the email subject line:
-```html
-<input type="hidden" name="form-type" value="Health Check">
-```
-This produces the subject: `New Health Check Submission`.
+- **Sender:** `no-reply@forms.rethinkyourit.co.nz`
+- **Model:** `claude-haiku-4-5-20251001`
