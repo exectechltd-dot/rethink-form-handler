@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
-
 const scoreMap = {
   // Q1 — Foundations (IT response time)
   'same-day': 1, 'day-or-two': 2, 'days-weeks': 3, 'no-plan': 4,
@@ -23,6 +21,7 @@ function avgScore(...values) {
 
 async function runHealthCheckPipeline(data, env) {
   const name = data['name'] || data['first-name'] || '';
+  console.log('Health Check pipeline started for:', data['business-name'] || data['businessName'] || data['business_name'] || '');
   const businessName = data['business-name'] || data['businessName'] || data['business_name'] || '';
   const email = data['email'] || '';
   const phone = data['phone'] || '';
@@ -46,6 +45,7 @@ async function runHealthCheckPipeline(data, env) {
       `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(searchQuery)}&count=3`,
       { headers: { 'Accept': 'application/json', 'X-Subscription-Token': env.BRAVE_API_KEY } }
     );
+    console.log('Brave status:', braveRes.status);
     const braveData = await braveRes.json();
     const results = (braveData.web?.results || []).slice(0, 3);
     if (results.length > 0) {
@@ -59,8 +59,6 @@ async function runHealthCheckPipeline(data, env) {
   let aiOutput = null;
   let claudeFailed = false;
   try {
-    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-
     const prompt = `You are helping a small IT consultancy owner (Paul) prepare for a conversation with a prospective client.
 
 BUSINESS DETAILS
@@ -96,12 +94,22 @@ One bullet per pillar. Format: "· [Pillar name] (score: X/4): [what their answe
 ## DRAFT CUSTOMER EMAIL
 A warm, plain-English email from Paul to ${name}. Acknowledge they completed the health check. Do not reveal scores or use jargon. Set the expectation that Paul will be in touch to have a conversation. Sign off as Paul. British spelling. Friendly but not salesy.`;
 
-    const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
+    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     });
-    aiOutput = message.content[0].text;
+    console.log('Anthropic status:', anthropicRes.status);
+    const anthropicData = await anthropicRes.json();
+    aiOutput = anthropicData.content[0].text;
   } catch (err) {
     console.error('Claude API failed:', err.message);
     claudeFailed = true;

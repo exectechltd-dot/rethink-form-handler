@@ -14,9 +14,6 @@ custom_domain = true
 # - BRAVE_API_KEY    — Brave Search API key (for Health Check pipeline)
 # - ANTHROPIC_API_KEY — Anthropic API key (for Health Check pipeline)
 # The actual values stay in Cloudflare's encrypted secrets, not this file.
-[vars]
-RESEND_API_KEY = ""
-
 [observability]
 enabled = false
 head_sampling_rate = 1
