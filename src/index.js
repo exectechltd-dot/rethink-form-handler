@@ -47,10 +47,11 @@ async function runHealthCheckPipeline(data, env) {
 
   // Step 2 — Brave Search
   let snippets = 'No web results found.';
-  try {
-    const searchTerm = businessName || (isPersonalEmail ? '' : emailDomain.split('.')[0]);
-    const searchQuery = searchTerm ? `${searchTerm} New Zealand` : '';
-    if (!searchQuery) throw new Error('No search term available');
+  const searchTerm = businessName || (isPersonalEmail ? '' : emailDomain.split('.')[0]);
+  const searchQuery = searchTerm ? `${searchTerm} New Zealand` : '';
+  if (!searchQuery) {
+    console.log('Brave Search skipped: no business name or domain to search.');
+  } else try {
     const braveRes = await fetch(
       `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(searchQuery)}&count=3`,
       { headers: { 'Accept': 'application/json', 'X-Subscription-Token': env.BRAVE_API_KEY } }
