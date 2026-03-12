@@ -220,6 +220,7 @@ export default {
         .join("\n");
 
       const formType = data["form-type"] || "Website";
+      console.log('Form type received:', formType);
       const subject = `New ${formType} Submission`;
 
       // Existing raw submission email (unchanged for all form types)
