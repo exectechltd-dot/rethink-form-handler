@@ -9,11 +9,11 @@ pattern = "api.rethinkyourit.co.nz"
 custom_domain = true
 
 # 2. Secret Variable Binding
-# RESEND_API_KEY must be added as an encrypted secret in Cloudflare Workers settings.
-# The actual value stays in Cloudflare's encrypted secrets, not this file.
-[vars]
-RESEND_API_KEY = ""
-
+# Secrets must be added via: wrangler secret put <SECRET_NAME>
+# - RESEND_API_KEY   — Resend email API key
+# - BRAVE_API_KEY    — Brave Search API key (for Health Check pipeline)
+# - ANTHROPIC_API_KEY — Anthropic API key (for Health Check pipeline)
+# The actual values stay in Cloudflare's encrypted secrets, not this file.
 [observability]
 enabled = false
 head_sampling_rate = 1
