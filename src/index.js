@@ -20,16 +20,25 @@ function avgScore(...values) {
 }
 
 async function runHealthCheckPipeline(data, env) {
-  const name = data['name'] || data['first-name'] || '';
-  console.log('Health Check pipeline started for:', data['business-name'] || data['businessName'] || data['business_name'] || '');
-  const businessName = data['business-name'] || data['businessName'] || data['business_name'] || '';
+  console.log('Health Check pipeline data keys:', JSON.stringify(Object.keys(data)));
+  const name = data['name'] || '';
+  const businessName = data['business'] || '';
+  console.log('Health Check pipeline started for:', businessName);
   const email = data['email'] || '';
   const phone = data['phone'] || '';
-  const q1 = data['q1'] || '';
-  const q2 = data['q2'] || '';
-  const q3 = data['q3'] || '';
-  const q4 = data['q4'] || '';
-  const q5 = data['q5'] || '';
+  const q1 = data['question 1'] || '';
+  const q2 = data['question 2'] || '';
+  const q3 = data['question 3'] || '';
+  const q4 = data['question 4'] || '';
+  const q5 = data['question 5'] || '';
+
+  // Email domain cross-reference
+  const emailDomain = email.includes('@') ? email.split('@')[1].toLowerCase() : '';
+  const personalDomains = ['gmail.com','yahoo.com','hotmail.com','outlook.com','me.com','icloud.com','live.com'];
+  const isPersonalEmail = personalDomains.includes(emailDomain);
+  const domainNote = isPersonalEmail
+    ? `Personal email (${emailDomain}) — domain does not confirm business identity.`
+    : `Business email domain: ${emailDomain}`;
 
   // Step 1 — Score the answers
   const foundationsScore = scoreAnswer(q1);
@@ -39,8 +48,11 @@ async function runHealthCheckPipeline(data, env) {
 
   // Step 2 — Brave Search
   let snippets = 'No web results found.';
-  try {
-    const searchQuery = `${businessName} New Zealand`;
+  const searchTerm = businessName || (isPersonalEmail ? '' : emailDomain.split('.')[0]);
+  const searchQuery = searchTerm ? `${searchTerm} New Zealand` : '';
+  if (!searchQuery) {
+    console.log('Brave Search skipped: no business name or domain to search.');
+  } else try {
     const braveRes = await fetch(
       `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(searchQuery)}&count=3`,
       { headers: { 'Accept': 'application/json', 'X-Subscription-Token': env.BRAVE_API_KEY } }
@@ -64,6 +76,7 @@ async function runHealthCheckPipeline(data, env) {
 BUSINESS DETAILS
 Name: ${name}
 Business: ${businessName}
+Email domain: ${domainNote}
 Web research snippets:
 ${snippets}
 
