@@ -109,6 +109,9 @@ A warm, plain-English email from Paul to ${name}. Acknowledge they completed the
     });
     console.log('Anthropic status:', anthropicRes.status);
     const anthropicData = await anthropicRes.json();
+    if (!anthropicRes.ok) {
+      throw new Error(`Anthropic error ${anthropicRes.status}: ${JSON.stringify(anthropicData)}`);
+    }
     aiOutput = anthropicData.content[0].text;
   } catch (err) {
     console.error('Claude API failed:', err.message);
@@ -183,7 +186,7 @@ A warm, plain-English email from Paul to ${name}. Acknowledge they completed the
         'Authorization': `Bearer ${env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'noreply@rethinkyourit.co.nz',
+        from: 'no-reply@forms.rethinkyourit.co.nz',
         to: ['paul@rethinkyourit.co.nz'],
         subject,
         text: emailBody,
