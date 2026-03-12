@@ -20,6 +20,7 @@ function avgScore(...values) {
 }
 
 async function runHealthCheckPipeline(data, env) {
+  console.log('Health Check pipeline data keys:', JSON.stringify(Object.keys(data)));
   const name = data['name'] || '';
   const businessName = data['business'] || '';
   console.log('Health Check pipeline started for:', businessName);
