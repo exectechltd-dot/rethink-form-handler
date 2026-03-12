@@ -31,6 +31,14 @@ async function runHealthCheckPipeline(data, env) {
   const q4 = data['question 4'] || '';
   const q5 = data['question 5'] || '';
 
+  // Email domain cross-reference
+  const emailDomain = email.includes('@') ? email.split('@')[1].toLowerCase() : '';
+  const personalDomains = ['gmail.com','yahoo.com','hotmail.com','outlook.com','me.com','icloud.com','live.com'];
+  const isPersonalEmail = personalDomains.includes(emailDomain);
+  const domainNote = isPersonalEmail
+    ? `Personal email (${emailDomain}) — domain does not confirm business identity.`
+    : `Business email domain: ${emailDomain}`;
+
   // Step 1 — Score the answers
   const foundationsScore = scoreAnswer(q1);
   const securityScore = avgScore(scoreAnswer(q2), scoreAnswer(q4));
@@ -40,7 +48,9 @@ async function runHealthCheckPipeline(data, env) {
   // Step 2 — Brave Search
   let snippets = 'No web results found.';
   try {
-    const searchQuery = `${businessName} New Zealand`;
+    const searchTerm = businessName || (isPersonalEmail ? '' : emailDomain.split('.')[0]);
+    const searchQuery = searchTerm ? `${searchTerm} New Zealand` : '';
+    if (!searchQuery) throw new Error('No search term available');
     const braveRes = await fetch(
       `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(searchQuery)}&count=3`,
       { headers: { 'Accept': 'application/json', 'X-Subscription-Token': env.BRAVE_API_KEY } }
@@ -64,6 +74,7 @@ async function runHealthCheckPipeline(data, env) {
 BUSINESS DETAILS
 Name: ${name}
 Business: ${businessName}
+Email domain: ${domainNote}
 Web research snippets:
 ${snippets}
 
