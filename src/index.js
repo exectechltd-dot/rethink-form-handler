@@ -22,34 +22,44 @@ export default {
         .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
         .join("\n");
 
-      await fetch("https://api.mailchannels.net/tx/v1/send", {
+      // Determine subject from form type if provided, else default
+      const formType = data["form-type"] || "Website";
+      const subject = `New ${formType} Submission`;
+
+      // Resend API Send Request
+      const resendResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+        },
         body: JSON.stringify({
-          personalizations: [{ 
-            to: [{ email: "paul@rethinkyourit.co.nz", name: "Paul Aylett" }] 
-          }],
-          from: { 
-            email: "forms@rethinkyourit.co.nz", 
-            name: "Rethink Your IT" 
-          },
-          subject: "New Website Health Check Submission",
-          content: [{ 
-            type: "text/plain", 
-            value: `New submission received:\n\n${emailBody}` 
-          }],
+          from: "no-reply@forms.rethinkyourit.co.nz",
+          to: ["paul@rethinkyourit.co.nz"],
+          reply_to: "paul@rethinkyourit.co.nz",
+          subject: subject,
+          text: `New submission received:\n\n${emailBody}`,
         }),
       });
 
-      return new Response(JSON.stringify({ success: true }), {
+      const resendStatus = resendResponse.status;
+      const resendText = await resendResponse.text();
+      console.log(`Resend Status: ${resendStatus}`);
+      console.log(`Resend Response: ${resendText}`);
+
+      if (resendStatus >= 400) {
+        throw new Error(`Resend error ${resendStatus}: ${resendText}`);
+      }
+
+      return new Response(JSON.stringify({ success: true, resendStatus }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
     } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), { 
-        status: 500, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
   },

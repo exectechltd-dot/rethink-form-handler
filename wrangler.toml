@@ -2,6 +2,33 @@ name = "rethink-form-handler"
 main = "src/index.js"
 compatibility_date = "2026-03-09"
 
+# 1. Custom Domain Routing
+# This tells Wrangler that api.rethinkyourit.co.nz belongs to this Worker
+[[routes]]
+pattern = "api.rethinkyourit.co.nz"
+custom_domain = true
+
+# 2. Secret Variable Binding
+# RESEND_API_KEY must be added as an encrypted secret in Cloudflare Workers settings.
+# The actual value stays in Cloudflare's encrypted secrets, not this file.
+[vars]
+RESEND_API_KEY = ""
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
 # Ensure no [modules] header is present. 
 # Cloudflare Pages handles the environment variables and bindings 
 # automatically once you connect the GitHub repository.
