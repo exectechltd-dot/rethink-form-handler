@@ -20,17 +20,16 @@ function avgScore(...values) {
 }
 
 async function runHealthCheckPipeline(data, env) {
-  console.log('Health Check pipeline data keys:', JSON.stringify(Object.keys(data)));
-  const name = data['name'] || '';
-  const businessName = data['business'] || '';
+  const name = data['Name'] || '';
+  const businessName = data['Business'] || '';
   console.log('Health Check pipeline started for:', businessName);
-  const email = data['email'] || '';
-  const phone = data['phone'] || '';
-  const q1 = data['question 1'] || '';
-  const q2 = data['question 2'] || '';
-  const q3 = data['question 3'] || '';
-  const q4 = data['question 4'] || '';
-  const q5 = data['question 5'] || '';
+  const email = data['Email'] || '';
+  const phone = data['Phone'] || '';
+  const q1 = data['Question 1'] || '';
+  const q2 = data['Question 2'] || '';
+  const q3 = data['Question 3'] || '';
+  const q4 = data['Question 4'] || '';
+  const q5 = data['Question 5'] || '';
 
   // Email domain cross-reference
   const emailDomain = email.includes('@') ? email.split('@')[1].toLowerCase() : '';
